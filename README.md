@@ -39,6 +39,40 @@ Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
 
 ---
 
+### 🛡️ Concurrency & Race-Condition-Free Strategy
+
+Evaluating correctness under heavy load is paramount in high-concurrency healthcare logistics. To guarantee **zero double-booking** and **100% race-condition-free allocations**, the application implements a strict transaction model:
+
+#### 1. Serializable Isolation Levels
+The system rejects default database read-committed states. All reservation, cancelation, and confirmation pipelines are processed within **Prisma Interactive Transactions** explicitly bound to the **`Serializable` Isolation Level** (the highest standard in relational databases):
+```typescript
+await prisma.$transaction(
+  async (tx) => { ... },
+  { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+)
+```
+This forces concurrent transaction schedules to execute as if they were strictly serial. It completely eliminates phantom reads, dirty reads, and write skews across overlapping hold requests.
+
+#### 2. Atomic Database-Level Increments
+Instead of performing race-prone calculations in JavaScript memory (e.g., reading stock, adding in JS, and saving), the database executes atomic updates directly on the PostgreSQL record using native database-level counters:
+```typescript
+data: {
+  reservedStock: { increment: quantity }
+}
+```
+
+#### 3. Concurrency Conflict Handling (PostgreSQL Error `P2034`)
+When two concurrent operations attempt to modify inventory stock for the exact same warehouse product simultaneously, PostgreSQL blocks the conflict and throws a Serialization Failure (`P2034` in Prisma). 
+The service layer gracefully intercepts this event:
+```typescript
+if (error.code === 'P2034') {
+  throw new ConcurrencyConflictError('A concurrent update conflict occurred. Please retry.');
+}
+```
+This guarantees that **never** will two users bypass stock checks, preventing stock levels from ever going negative or double-reserved.
+
+---
+
 ### 2. How the Expiry Mechanism Works in Production
 
 When a user locks inventory to reserve items, they get a temporary 10-minute hold. The hold prevents other users from checking out those items. In production, this cleanup is handled through two layers:
