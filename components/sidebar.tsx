@@ -8,7 +8,8 @@ import {
   Boxes,
   CalendarClock,
   Warehouse,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -42,6 +43,24 @@ function SidebarContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentView = searchParams.get('view') || 'dashboard';
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleToggle = () => setIsOpen((prev) => !prev);
+    const handleClose = () => setIsOpen(false);
+
+    window.addEventListener('toggle-sidebar', handleToggle);
+    window.addEventListener('close-sidebar', handleClose);
+
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggle);
+      window.removeEventListener('close-sidebar', handleClose);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    setIsOpen(false);
+  }, [pathname, searchParams]);
 
   
   
@@ -75,21 +94,39 @@ function SidebarContent() {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shrink-0 select-none z-10">
-      
-      <div className="p-6 border-b border-slate-100 flex flex-col gap-1 bg-white">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20">
-            <ShieldCheck className="w-5 h-5 text-white" />
+    <>
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300"
+        />
+      )}
+
+      <aside className={`w-64 bg-white border-r border-slate-200 flex flex-col h-screen fixed md:sticky top-0 left-0 shrink-0 select-none z-40 transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
+        
+        <div className="p-6 border-b border-slate-100 flex flex-col gap-1 bg-white">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20">
+                <ShieldCheck className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-lg text-slate-900 tracking-tight">
+                Allo Healthcare
+              </span>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
+            >
+              <X className="w-4.5 h-4.5" />
+            </button>
           </div>
-          <span className="font-bold text-lg text-slate-900 tracking-tight">
-            Allo Healthcare
+          <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase ml-10">
+            Ops Platform
           </span>
         </div>
-        <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase ml-10">
-          Ops Platform
-        </span>
-      </div>
 
       
       <nav className="flex-1 px-4 py-6 flex flex-col gap-1.5 overflow-y-auto">
@@ -118,7 +155,8 @@ function SidebarContent() {
           </div>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

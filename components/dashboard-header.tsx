@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import {
   RefreshCw,
   Activity,
-  HeartPulse
+  HeartPulse,
+  Menu
 } from 'lucide-react';
 import { useToast } from '@/components/providers/toast-provider';
 
@@ -42,17 +43,26 @@ export default function DashboardHeader() {
 
   return (
     <header className="sticky top-0 bg-white border-b border-slate-200 h-20 px-8 flex items-center justify-between z-20 shrink-0 select-none shadow-sm shadow-slate-100">
-      
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-1.5">
-          <HeartPulse className="w-4 h-4 text-blue-600 shrink-0" />
-          <h1 className="font-bold text-base text-slate-900 tracking-tight leading-none">
-            Allo Healthcare
-          </h1>
+      {/* Branding / Header Title with mobile toggle */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
+          className="md:hidden p-1.5 -ml-1 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer select-none"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            <HeartPulse className="w-4 h-4 text-blue-600 shrink-0" />
+            <h1 className="font-bold text-base text-slate-900 tracking-tight leading-none">
+              Allo Healthcare
+            </h1>
+          </div>
+          <span className="text-xs text-slate-500 font-medium">
+            Inventory Reservation Platform
+          </span>
         </div>
-        <span className="text-xs text-slate-500 font-medium">
-          Inventory Reservation Platform
-        </span>
       </div>
 
       
