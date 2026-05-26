@@ -57,12 +57,18 @@ export default function InventoryCard({ product, onReserve }: InventoryCardProps
         
         <div className="flex justify-between items-start gap-4">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center shrink-0 text-slate-500 group-hover:text-blue-600 transition-colors">
+            <div className="w-9 h-9 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center shrink-0 text-slate-500 group-hover:text-blue-600 transition-colors mt-0.5">
               <Package className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-slate-800 tracking-tight leading-snug truncate" title={product.name}>
-              {product.name}
-            </h3>
+            <div className="flex flex-col min-w-0">
+              <h3 className="font-bold text-base text-slate-800 tracking-tight leading-snug" title={product.name}>
+                {product.name}
+              </h3>
+              <span className="text-xs text-slate-500 font-medium mt-1 select-none">
+                Total: <strong className="text-slate-800 font-bold">{grandTotalAvailable}</strong>
+                <span className="text-slate-400 font-normal">/{product.inventories.reduce((acc, inv) => acc + inv.totalStock, 0)}</span> available
+              </span>
+            </div>
           </div>
           <StatusBadge type="health" status={healthStatus} />
         </div>
