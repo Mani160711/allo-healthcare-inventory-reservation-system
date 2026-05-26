@@ -1,0 +1,67 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  RELEASED
+}
+
+model Product {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  inventories Inventory[]
+}
+
+model Warehouse {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  inventories Inventory[]
+}
+
+model Inventory {
+  id            String    @id @default(cuid())
+  productId     String
+  warehouseId   String
+  totalStock    Int
+  reservedStock Int       @default(0)
+  updatedAt     DateTime  @updatedAt
+
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse    Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@unique([productId, warehouseId])
+  @@index([productId, warehouseId])
+}
+
+model Reservation {
+  id          String            @id @default(cuid())
+  inventoryId String
+  quantity    Int
+  status      ReservationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime          @default(now())
+
+  inventory   Inventory         @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  @@index([status, expiresAt])
+}
+
+model IdempotencyRecord {
+  key        String   @id
+  path       String
+  bodyHash   String
+  response   String   // JSON string of response
+  status     Int      // HTTP response status
+  createdAt  DateTime @default(now())
+}
